@@ -54,6 +54,7 @@ void Worker::startWorking()
 
                 try
                 {
+                    DEV_BUILD_LOG_PROGRAMFLOW(cnote, "Worker::Startinggggggg() begin");
                     workLoop();
                 }
                 catch (std::exception const& _e)

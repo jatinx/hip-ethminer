@@ -29,7 +29,6 @@
 using namespace std;
 using namespace dev;
 
-//⊳⊲◀▶■▣▢□▷◁▧▨▩▲◆◉◈◇◎●◍◌○◼☑☒☎☢☣☰☀♽♥♠✩✭❓✔✓✖✕✘✓✔✅⚒⚡⦸⬌∅⁕«««»»»⚙
 
 // Logging
 unsigned g_logOptions = 0;

@@ -26,6 +26,10 @@
 #include <libethash-cuda/CUDAMiner.h>
 #endif
 
+#if ETH_ETHASHHIP
+#include <libethash-hip/HIPMiner.h>
+#endif
+
 #if ETH_ETHASHCPU
 #include <libethash-cpu/CPUMiner.h>
 #endif
@@ -268,6 +272,15 @@ bool Farm::start()
                 minerTelemetry.prefix = "cu";
                 m_miners.push_back(std::shared_ptr<Miner>(
                     new CUDAMiner(m_miners.size(), m_CUSettings, it->second)));
+            }
+#endif
+#if ETH_ETHASHHIP
+            if (it->second.subscriptionType == DeviceSubscriptionTypeEnum::HIP)
+            {
+                minerTelemetry.prefix = "hpp";
+                std::cout << "Adding Miner" << std::endl;
+                m_miners.push_back(std::shared_ptr<Miner>(
+                    new HIPMiner(m_miners.size(), m_CUSettings, it->second)));
             }
 #endif
 #if ETH_ETHASHCL

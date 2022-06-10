@@ -31,6 +31,9 @@
 #if ETH_ETHASHCUDA
 #include <libethash-cuda/CUDAMiner.h>
 #endif
+#if ETH_ETHASHHIP
+#include <libethash-hip/HIPMiner.h>
+#endif
 #if ETH_ETHASHCPU
 #include <libethash-cpu/CPUMiner.h>
 #endif
@@ -232,6 +235,9 @@ public:
 #if ETH_ETHASHCUDA
                     "cu",
 #endif
+#if ETH_ETHASHHIP
+                    "cpp",
+#endif
 #if ETH_ETHASHCPU
                     "cp",
 #endif
@@ -307,7 +313,7 @@ public:
 
 #endif
 
-#if ETH_ETHASHCL || ETH_ETHASHCUDA || ETH_ETHASH_CPU
+#if ETH_ETHASHCL || ETH_ETHASHCUDA || ETH_ETHASH_CPU || ETH_ETHASHHIP
 
         app.add_flag("--list-devices", m_shouldListDevices, "");
 
@@ -362,6 +368,9 @@ public:
         bool cuda_miner = false;
         app.add_flag("-U,--cuda", cuda_miner, "");
 
+        bool hip_miner = false;
+        app.add_flag("-X,--hip", hip_miner, "");
+
         bool cpu_miner = false;
 #if ETH_ETHASHCPU
         app.add_flag("--cpu", cpu_miner, "");
@@ -409,6 +418,8 @@ public:
             m_minerType = MinerType::CL;
         else if (cuda_miner)
             m_minerType = MinerType::CUDA;
+        else if (hip_miner)
+            m_minerType = MinerType::HIP;
         else if (cpu_miner)
             m_minerType = MinerType::CPU;
         else
@@ -515,6 +526,10 @@ public:
         if (m_minerType == MinerType::CUDA || m_minerType == MinerType::Mixed)
             CUDAMiner::enumDevices(m_DevicesCollection);
 #endif
+#if ETH_ETHASHHIP
+        if (m_minerType == MinerType::HIP || m_minerType == MinerType::Mixed)
+            HIPMiner::enumDevices(m_DevicesCollection);
+#endif
 #if ETH_ETHASHCPU
         if (m_minerType == MinerType::CPU)
             CPUMiner::enumDevices(m_DevicesCollection);
@@ -536,6 +551,14 @@ public:
             if (m_minerType == MinerType::CUDA || m_minerType == MinerType::Mixed)
             {
                 cout << setw(5) << "CUDA ";
+                cout << setw(4) << "SM  ";
+            }
+#endif
+
+#if ETH_ETHASHHIP
+            if (m_minerType == MinerType::HIP || m_minerType == MinerType::Mixed)
+            {
+                cout << setw(5) << "HIP ";
                 cout << setw(4) << "SM  ";
             }
 #endif
@@ -563,6 +586,13 @@ public:
 
 #if ETH_ETHASHCUDA
             if (m_minerType == MinerType::CUDA || m_minerType == MinerType::Mixed)
+            {
+                cout << setw(5) << "---- ";
+                cout << setw(4) << "--- ";
+            }
+#endif
+#if ETH_ETHASHHIP
+            if (m_minerType == MinerType::HIP || m_minerType == MinerType::Mixed)
             {
                 cout << setw(5) << "---- ";
                 cout << setw(4) << "--- ";
@@ -613,6 +643,13 @@ public:
                     cout << setw(4) << it->second.cuCompute;
                 }
 #endif
+#if ETH_ETHASHHIP
+                if (m_minerType == MinerType::HIP || m_minerType == MinerType::Mixed)
+                {
+                    cout << setw(5) << (it->second.cuDetected ? "Yes" : "");
+                    cout << setw(4) << it->second.cuCompute;
+                }
+#endif
 #if ETH_ETHASHCL
                 if (m_minerType == MinerType::CL || m_minerType == MinerType::Mixed)
                     cout << setw(5) << (it->second.clDetected ? "Yes" : "");
@@ -652,6 +689,23 @@ public:
                     if (!it->second.cuDetected)
                         throw std::runtime_error("Can't CUDA subscribe a non-CUDA device.");
                     it->second.subscriptionType = DeviceSubscriptionTypeEnum::Cuda;
+                }
+            }
+        }
+#endif
+#if ETH_ETHASHHIP
+        if (m_CUSettings.devices.size() &&
+            (m_minerType == MinerType::HIP || m_minerType == MinerType::Mixed))
+        {
+            for (auto index : m_CUSettings.devices)
+            {
+                if (index < m_DevicesCollection.size())
+                {
+                    auto it = m_DevicesCollection.begin();
+                    std::advance(it, index);
+                    if (!it->second.cuDetected)
+                        throw std::runtime_error("Can't HIP subscribe a non-HIP device.");
+                    it->second.subscriptionType = DeviceSubscriptionTypeEnum::HIP;
                 }
             }
         }
@@ -703,6 +757,19 @@ public:
                     it->second.subscriptionType != DeviceSubscriptionTypeEnum::None)
                     continue;
                 it->second.subscriptionType = DeviceSubscriptionTypeEnum::Cuda;
+            }
+        }
+#endif
+#if ETH_ETHASHHIP
+        if (!m_CUSettings.devices.size() &&
+            (m_minerType == MinerType::HIP || m_minerType == MinerType::Mixed))
+        {
+            for (auto it = m_DevicesCollection.begin(); it != m_DevicesCollection.end(); it++)
+            {
+                if (!it->second.cuDetected ||
+                    it->second.subscriptionType != DeviceSubscriptionTypeEnum::None)
+                    continue;
+                it->second.subscriptionType = DeviceSubscriptionTypeEnum::HIP;
             }
         }
 #endif

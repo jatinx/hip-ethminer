@@ -12,7 +12,7 @@
 // Leave room for up to 4 results. A power
 // of 2 here will yield better CUDA optimization
 // TODO verify this
-#define MAX_SEARCH_RESULTS 4U
+#define MAX_SEARCH_RESULTS 8U
 
 struct Search_Result
 {

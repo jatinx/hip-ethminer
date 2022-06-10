@@ -52,6 +52,7 @@ enum class DeviceSubscriptionTypeEnum
     None,
     OpenCL,
     Cuda,
+    HIP,
     Cpu
 
 };
@@ -61,6 +62,7 @@ enum class MinerType
     Mixed,
     CL,
     CUDA,
+    HIP,
     CPU
 };
 
@@ -97,8 +99,8 @@ struct MinerSettings
 // Holds settings for CUDA Miner
 struct CUSettings : public MinerSettings
 {
-    unsigned streams = 2;
-    unsigned schedule = 4;
+    unsigned streams = 4;
+    unsigned schedule = 8;
     unsigned gridSize = 8192;
     unsigned blockSize = 128;
 };

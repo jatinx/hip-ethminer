@@ -7,7 +7,8 @@ include_directories(BEFORE ..)
 set(EXECUTABLE ethminer)
 
 file(GLOB HEADERS "*.h")
-
+include_directories(/opt/rocm-5.1.3/hip/include)
+add_definitions(-D__HIP_PLATFORM_AMD__=1)
 add_executable(${EXECUTABLE} ${SRC_LIST} ${HEADERS})
 if(MSVC)
 	target_sources(${EXECUTABLE} PRIVATE ethminer.rc)

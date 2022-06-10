@@ -129,8 +129,8 @@ bool HIPMiner::initEpoch_internal()
             // create buffer for cache
             if (lightOnHost)
             {
-                HIP_SAFE_CALL(hipHostAlloc(reinterpret_cast<void**>(&light),
-                    m_epochContext.lightSize, hipHostAllocDefault));
+                HIP_SAFE_CALL(
+                    hipHostMalloc(reinterpret_cast<void**>(&light), m_epochContext.lightSize));
                 hiplog << "WARNING: Generating DAG will take minutes, not seconds";
             }
             else
@@ -143,7 +143,7 @@ bool HIPMiner::initEpoch_internal()
             // create mining buffers
             for (unsigned i = 0; i != m_settings.streams; ++i)
             {
-                HIP_SAFE_CALL(hipMallocHost(&m_search_buf[i], sizeof(Search_results)));
+                HIP_SAFE_CALL(hipHostMalloc(&m_search_buf[i], sizeof(Search_results)));
                 HIP_SAFE_CALL(hipStreamCreateWithFlags(&m_streams[i], hipStreamNonBlocking));
             }
         }
@@ -154,7 +154,7 @@ bool HIPMiner::initEpoch_internal()
             get_constants(&dag, NULL, &light, NULL);
         }
 
-        HIP_SAFE_CALL(hipemcpy(reinterpret_cast<void*>(light), m_epochContext.lightCache,
+        HIP_SAFE_CALL(hipMemcpy(reinterpret_cast<void*>(light), m_epochContext.lightCache,
             m_epochContext.lightSize, hipMemcpyHostToDevice));
 
         set_constants(dag, m_epochContext.dagNumItems, light,
@@ -189,6 +189,7 @@ bool HIPMiner::initEpoch_internal()
 
 void HIPMiner::workLoop()
 {
+    std::cout << "starting hip miner" << std::endl;
     WorkPackage current;
     current.header = h256();
 
@@ -286,7 +287,7 @@ void HIPMiner::enumDevices(std::map<string, DeviceDescriptor>& _DevicesCollectio
         string uniqueId;
         ostringstream s;
         DeviceDescriptor deviceDescriptor;
-        hipDeviceProp props;
+        hipDeviceProp_t props;
 
         try
         {
